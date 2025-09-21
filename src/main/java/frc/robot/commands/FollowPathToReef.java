@@ -9,7 +9,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.VisionDriveSystem;
 
 
-public class FollowPathToReef extends Command{
+
+public class FollowPathToReef extends Command {
     
     int aprilTagTarget;
 
@@ -17,16 +18,40 @@ public class FollowPathToReef extends Command{
     private Command pathCommand;  // Store the path command
     
     public FollowPathToReef(VisionDriveSystem driveSystem, int aprilTagTarget) {
+        System.out.println("CHECKPOINT 1");
         this.aprilTagTarget = aprilTagTarget;
+        System.out.println("CHECKPOINT A");
         m_VisionDriveSystem = driveSystem;
+        System.out.println("CHECKPOINT B");
         addRequirements(m_VisionDriveSystem);
+        System.out.println("CHECKPOINT C");
+        
     }
     
     @Override
     public void initialize() {
-        PathPlannerPath path = m_VisionDriveSystem.getPathToVisionTarget(aprilTagTarget);
+        PathPlannerPath path = null;
+        System.out.println("CHECKPOINT 2");
+        try{
+        path = m_VisionDriveSystem.getPathToVisionTarget(aprilTagTarget);
+        }
+        catch(Exception e){
+            System.out.println("ERROR DURING PATH CREATION" + e.getMessage());
+        }
+
+        System.out.println("CHECKPOINT 12");
+        if (!(path == null)){
+
+        
         pathCommand = AutoBuilder.followPath(path);
+        System.out.println("CHECKPOINT 13");
+        
         pathCommand.schedule();  // Start the path
+        System.out.println("CHECKPOINT 14");
+        }
+        else {
+            System.out.println("PATH IS NULL");
+        }
     }
     @Override
     public boolean isFinished() {

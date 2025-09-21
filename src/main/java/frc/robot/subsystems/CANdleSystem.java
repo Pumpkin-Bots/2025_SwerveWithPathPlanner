@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -19,12 +20,16 @@ import com.ctre.phoenix.led.ColorFlowAnimation.Direction;
 import com.ctre.phoenix.led.LarsonAnimation.BounceMode;
 import com.ctre.phoenix.led.TwinkleAnimation.TwinklePercent;
 import com.ctre.phoenix.led.TwinkleOffAnimation.TwinkleOffPercent;
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import frc.robot.subsystems.CoralSensor;
 
 public class CANdleSystem extends SubsystemBase {
+    private Timer time = new Timer();
     private final CANdle m_candle = new CANdle(Constants.CANdle.kCANdleID);
     private final int LedCount = 68;
     private CommandXboxController joystick;
+    private double MotorTemp = 0.0;
 
     private Animation m_toAnimate = null;
 
@@ -44,6 +49,8 @@ public class CANdleSystem extends SubsystemBase {
 
     public CANdleSystem(CommandXboxController joy) {
         this.joystick = joy;
+        time.start();
+        time.reset();
         changeAnimation(AnimationTypes.SetAll);
         CANdleConfiguration configAll = new CANdleConfiguration();
         configAll.statusLedOffWhenActive = true;
@@ -149,10 +156,10 @@ public class CANdleSystem extends SubsystemBase {
                 m_toAnimate = new SingleFadeAnimation(50, 2, 200, 0, 0.5, LedCount);
                 break;
             case StrobeOrange:
-                m_toAnimate = new StrobeAnimation(0, 255, 0, 0, 98.0 / 256.0, LedCount);
+                m_toAnimate = new StrobeAnimation(0, 255, 0, 0, 1000.0 / 256.0, LedCount);
                 break;
             case Twinkle:
-                m_toAnimate = new TwinkleAnimation(30, 70, 60, 0, 0.4, LedCount, TwinklePercent.Percent6);
+                m_toAnimate = new TwinkleAnimation(200, 100, 60, 0, 100, LedCount, TwinklePercent.Percent6);
                 break;
             case TwinkleOff:
                 m_toAnimate = new TwinkleOffAnimation(70, 90, 175, 0, 0.8, LedCount, TwinkleOffPercent.Percent100);
@@ -166,18 +173,20 @@ public class CANdleSystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-
-
-        changeAnimation(AnimationTypes.Fire);
-
-
-
-
-
-
-
-
-
+        TalonFX fl = new TalonFX(5);
+        TalonFX bl = new TalonFX(8);
+        TalonFX br = new TalonFX(2);
+        TalonFX fr = new TalonFX(11);
+        MotorTemp = ((fl.getAncillaryDeviceTemp().getValueAsDouble() +
+            bl.getAncillaryDeviceTemp().getValueAsDouble() +
+            br.getAncillaryDeviceTemp().getValueAsDouble() +
+            fr.getAncillaryDeviceTemp().getValueAsDouble()) / 4);
+            if(MotorTemp < 50){
+            m_candle.setLEDs((int)MotorTemp*5, (int)MotorTemp*5, 255);
+            }else {
+                m_candle.setLEDs(255, 255-((100-(int)MotorTemp)*5),  255-((100-(int)MotorTemp)*5));
+            }
+        
 
 
         //EDIT code ABOVE^^^
